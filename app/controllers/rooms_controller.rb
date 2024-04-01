@@ -24,10 +24,10 @@ class RoomsController < ApplicationController
     @room = Room.new(room_params)
 
     respond_to do |format|
+      @room.users << current_user
       if @room.save
         #formato:
         #format.turbo_stream { render turbo_stream: turbo_stream.append(id, partial, locals)  }
-
         format.turbo_stream { render turbo_stream: turbo_stream.append('rooms', partial: 'shared/room', locals: {room: @room})  }
       else
         #formato: format.turbo_stream { render turbo_stream: turbo_stream.replace(id, partial, locals) }
@@ -56,6 +56,14 @@ class RoomsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to rooms_url, notice: "Room was successfully destroyed." }
       format.json { head :no_content }
+    end
+  end
+
+  def add_user
+    UserRoom.create(room_id: params[:room_id], user_id: params[:user_id])
+
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.replace("room_#{params[:room_id]}", partial: 'rooms/room', locals: {room: Room.find(params[:room_id])})  }
     end
   end
 
