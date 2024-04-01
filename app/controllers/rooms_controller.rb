@@ -22,30 +22,35 @@ class RoomsController < ApplicationController
   # POST /rooms or /rooms.json
   def create
     @room = Room.new(room_params)
+    @room.users << current_user
 
-    respond_to do |format|
-      @room.users << current_user
-      if @room.save
+    if @room.save
+      respond_to do |format|
         #formato:
         #format.turbo_stream { render turbo_stream: turbo_stream.append(id, partial, locals)  }
-        format.turbo_stream { render turbo_stream: turbo_stream.append('rooms', partial: 'shared/room', locals: {room: @room})  }
-      else
-        #formato: format.turbo_stream { render turbo_stream: turbo_stream.replace(id, partial, locals) }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace('room-form', partial: 'rooms/form', locals: {room: @room}) }
 
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.append('rooms', partial: 'shared/room', locals: { room: @room }),
+            turbo_stream.replace(Room.new, partial: 'shared/create_room')]
+        end
       end
+    else
+      render :new, status: :unprocessable_entity
+      #formato: format.turbo_stream { render turbo_stream: turbo_stream.replace(id, partial, locals) }
+      #format.turbo_stream { render turbo_stream: turbo_stream.replace('room-form', partial: 'rooms/form', locals: {room: @room}) }
     end
   end
 
   # PATCH/PUT /rooms/1 or /rooms/1.json
   def update
-    respond_to do |format|
-      if @room.update(room_params)
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("room-#{@room.id}", partial: 'shared/room', locals: {room: @room})  }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        #format.turbo_stream { render turbo_stream: turbo_stream.replace("room-#{@room.id}", partial: 'rooms/form', locals: {room: @room}) }
+    if @room.update(room_params)
+      respond_to do |format|
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@room, partial: 'shared/room', locals: {room: @room})  }
       end
+    else
+      render :edit, status: :unprocessable_entity
+      #format.turbo_stream { render turbo_stream: turbo_stream.replace("room-#{@room.id}", partial: 'rooms/form', locals: {room: @room}) }
     end
   end
 
@@ -63,7 +68,7 @@ class RoomsController < ApplicationController
     UserRoom.create(room_id: params[:room_id], user_id: params[:user_id])
 
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.replace("room_#{params[:room_id]}", partial: 'rooms/room', locals: {room: Room.find(params[:room_id])})  }
+      format.turbo_stream { render turbo_stream: turbo_stream.replace("room_show_#{params[:room_id]}", partial: 'rooms/room', locals: {room: Room.find(params[:room_id])})  }
     end
   end
 
