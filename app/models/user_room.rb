@@ -14,10 +14,10 @@ class UserRoom < ApplicationRecord
 
   after_commit on: :create do
     broadcast_append_to(
-      'user_rooms_channel',
+      user,
       partial: 'shared/room',
       locals: { room: Room.find(room_id) },
-      target: "user_#{user_id}_rooms"
+      target: 'rooms'
     )
   end
 end
