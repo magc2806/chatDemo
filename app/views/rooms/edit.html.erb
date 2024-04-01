@@ -1,4 +1,7 @@
+
 <%= turbo_frame_tag "room-#{@room.id}" do%>
   <h4 class="font-medium text-base text-white text-center">Edit room</h4>
+
+  <%#El mensaje de arriba no se reenderizará porque el que tiene el frame_tag_id es solo el formulario%>
   <%= render "form", room: @room %>
 <%end%>
