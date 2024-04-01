@@ -22,6 +22,7 @@ class RoomsController < ApplicationController
   # POST /rooms or /rooms.json
   def create
     @room = Room.new(room_params)
+    @room.users << current_user
 
     if @room.save
       respond_to do |format|
@@ -38,7 +39,6 @@ class RoomsController < ApplicationController
       render :new, status: :unprocessable_entity
       #formato: format.turbo_stream { render turbo_stream: turbo_stream.replace(id, partial, locals) }
       #format.turbo_stream { render turbo_stream: turbo_stream.replace('room-form', partial: 'rooms/form', locals: {room: @room}) }
-
     end
   end
 
@@ -61,6 +61,14 @@ class RoomsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to rooms_url, notice: "Room was successfully destroyed." }
       format.json { head :no_content }
+    end
+  end
+
+  def add_user
+    UserRoom.create(room_id: params[:room_id], user_id: params[:user_id])
+
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.replace("room_show_#{params[:room_id]}", partial: 'rooms/room', locals: {room: Room.find(params[:room_id])})  }
     end
   end
 
