@@ -28,7 +28,6 @@ class RoomsController < ApplicationController
       if @room.save
         #formato:
         #format.turbo_stream { render turbo_stream: turbo_stream.append(id, partial, locals)  }
-
         format.turbo_stream { render turbo_stream: turbo_stream.append('rooms', partial: 'shared/room', locals: {room: @room})  }
       else
         #formato: format.turbo_stream { render turbo_stream: turbo_stream.replace(id, partial, locals) }
